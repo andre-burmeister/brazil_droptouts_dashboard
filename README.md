@@ -1,0 +1,1 @@
+Os dados devem ser baixados diretamente do [site do INEP](https://www.gov.br/inep/pt-br/areas-de-atuacao/pesquisas-estatisticas-e-indicadores/censo-da-educacao-superior/resultados) e organizados em uma pasta chamada "dados" na raiz do projeto, colocando cada arquivo em sua respectiva subpasta.
