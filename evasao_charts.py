@@ -3,9 +3,8 @@ import pandas as pd
 import streamlit as st
 from branca.utilities import color_brewer
 
-from data_helpers import EVASAO_FROM_YEAR
+from data_helpers import EVASAO_FROM_YEAR, MIN_ENROLLED
 
-MIN_ENROLLED = 100
 LARGEST_IN_AREA = 3
 CHART_VIEWPORT_PX = 480
 

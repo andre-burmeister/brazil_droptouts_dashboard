@@ -3,6 +3,7 @@ import streamlit as st
 from data_helpers import (
     EVASAO_FROM_YEAR,
     EVASAO_TO_YEAR,
+    MIN_ENROLLED,
     MODALIDADE_EAD,
     MODALIDADE_PRESENCIAL,
     dropout_rankings,
@@ -11,7 +12,7 @@ from data_helpers import (
     load_evasao,
     population_evasao,
 )
-from evasao_charts import MIN_ENROLLED, render as render_charts
+from evasao_charts import render as render_charts
 from tab2_map import render as render_map
 
 # Partitions and single characteristics from the INEP course census.
@@ -158,7 +159,9 @@ def render_filters(groups):
 def load_dashboard(modalidades: tuple[int, ...], suffixes: tuple[str, ...]):
     population = population_evasao(load_evasao(), modalidades, suffixes)
     courses, areas = dropout_rankings(population, MIN_ENROLLED)
-    by_state = evasao_by_state(population)
+    # Mesmas ofertas dos gráficos: cursos cujo total nacional passa de MIN_ENROLLED.
+    same_offers = population.loc[population["NO_CURSO"].isin(courses["NO_CURSO"])]
+    by_state = evasao_by_state(same_offers)
     rates = by_state.loc[:, ["SG_UF", "QT_MAT_2023", "QT_EVAS", "TX_EVAS"]].copy()
     return courses, areas, rates
 
@@ -177,7 +180,9 @@ def render():
     st.caption(
         f"{recorte} Taxa = evadidos / matrículas de {EVASAO_FROM_YEAR} "
         f"({EVASAO_FROM_YEAR}→{EVASAO_TO_YEAR}). "
-        "Os filtros atualizam os gráficos e o mapa automaticamente."
+        f"Gráficos e mapa usam os cursos com mais de {MIN_ENROLLED} matrículas "
+        f"em {EVASAO_FROM_YEAR}, somadas no Brasil. "
+        "Os filtros atualizam os dois automaticamente."
     )
 
     courses, areas, rates = load_dashboard(tuple(sorted(modalidades)), suffixes)

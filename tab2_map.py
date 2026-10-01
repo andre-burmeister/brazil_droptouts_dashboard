@@ -6,7 +6,7 @@ import pandas as pd
 import streamlit as st
 from streamlit_folium import st_folium
 
-from data_helpers import EVASAO_FROM_YEAR, EVASAO_TO_YEAR
+from data_helpers import EVASAO_FROM_YEAR, EVASAO_TO_YEAR, MIN_ENROLLED
 
 GEOJSON_PATH = Path(__file__).parent / "geo" / "brazil_states.geojson"
 
@@ -79,10 +79,14 @@ def render(rates: pd.DataFrame, *, map_key: str):
         f"Média ponderada pelas matrículas de {EVASAO_FROM_YEAR} em cada oferta do recorte: "
         f"Σ evadidos / Σ matriculados_{EVASAO_FROM_YEAR} "
         f"({EVASAO_FROM_YEAR}→{EVASAO_TO_YEAR}). "
-        "Entram todas as ofertas do filtro, sem o corte de 100 matrículas dos gráficos."
+        f"Entram só os cursos com mais de {MIN_ENROLLED} matrículas em {EVASAO_FROM_YEAR}, "
+        "o mesmo conjunto dos gráficos de barra."
     )
     if rates.empty or rates["QT_MAT_2023"].fillna(0).sum() == 0:
-        st.info("Nenhuma oferta de curso nesse recorte.")
+        st.info(
+            f"Nenhum curso com mais de {MIN_ENROLLED} matrículas em {EVASAO_FROM_YEAR} "
+            "nesse recorte."
+        )
         return
 
     st_folium(

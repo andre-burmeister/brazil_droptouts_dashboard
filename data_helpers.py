@@ -7,6 +7,7 @@ CO_IES_UFRGS = 581
 DEFAULT_YEAR = 2023
 EVASAO_FROM_YEAR = 2023
 EVASAO_TO_YEAR = 2024
+MIN_ENROLLED = 100
 MODALIDADE_PRESENCIAL = 1
 MODALIDADE_EAD = 2
 
@@ -303,7 +304,7 @@ def predominant_cine_area(df):
     return totals.loc[chosen, ["NO_CURSO", "NO_CINE_AREA_GERAL"]].reset_index(drop=True)
 
 
-def dropout_rankings(df, min_enrolled=100):
+def dropout_rankings(df, min_enrolled=MIN_ENROLLED):
     """Rank courses and CINE areas among courses with more than min_enrolled.
 
     The course rate sums every offer of that NO_CURSO in Brazil. The area rate
