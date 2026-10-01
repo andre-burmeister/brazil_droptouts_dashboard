@@ -7,6 +7,8 @@ CO_IES_UFRGS = 581
 DEFAULT_YEAR = 2023
 EVASAO_FROM_YEAR = 2023
 EVASAO_TO_YEAR = 2024
+MODALIDADE_PRESENCIAL = 1
+MODALIDADE_EAD = 2
 
 OFFER_KEYS = ["CO_IES", "CO_CURSO", "CO_MUNICIPIO", "TP_DIMENSAO"]
 OFFER_KEY_FILL = {"CO_MUNICIPIO": -1}
@@ -23,6 +25,7 @@ ID_COLS = [
     "TP_NIVEL_ACADEMICO",
     "TP_REDE",
     "TP_CATEGORIA_ADMINISTRATIVA",
+    "NO_CINE_AREA_GERAL",
 ]
 
 
@@ -287,6 +290,73 @@ def evasao_by_course(df):
 
 def evasao_by_state(df):
     return sum_evasao_by(df[df["SG_UF"].notna()], ["SG_UF"])
+
+
+def predominant_cine_area(df):
+    """Área geral CINE com mais matrículas de 2023 em cada NO_CURSO."""
+    totals = (
+        df.groupby(["NO_CURSO", "NO_CINE_AREA_GERAL"], dropna=False)["QT_MAT_2023"]
+        .sum()
+        .reset_index()
+    )
+    chosen = totals.groupby("NO_CURSO", dropna=False)["QT_MAT_2023"].idxmax()
+    return totals.loc[chosen, ["NO_CURSO", "NO_CINE_AREA_GERAL"]].reset_index(drop=True)
+
+
+def dropout_rankings(df, min_enrolled=100):
+    """Rank courses and CINE areas among courses with more than min_enrolled.
+
+    The course rate sums every offer of that NO_CURSO in Brazil. The area rate
+    keeps the same courses and counts each offer in its own NO_CINE_AREA_GERAL.
+    """
+    by_course = evasao_by_course(df)
+    eligible = by_course[by_course["QT_MAT_2023"] > min_enrolled].copy()
+    if eligible.empty:
+        areas = sum_evasao_by(df.iloc[0:0], ["NO_CINE_AREA_GERAL"])
+        return eligible, areas
+
+    eligible = eligible.merge(predominant_cine_area(df), on="NO_CURSO", how="left")
+    eligible = eligible.sort_values(
+        ["TX_EVAS", "QT_MAT_2023", "NO_CURSO"], ascending=[False, False, True]
+    ).reset_index(drop=True)
+
+    subset = df[df["NO_CURSO"].isin(set(eligible["NO_CURSO"]))]
+    areas = sum_evasao_by(subset, ["NO_CINE_AREA_GERAL"])
+    areas = areas.sort_values(
+        ["TX_EVAS", "NO_CINE_AREA_GERAL"], ascending=[False, True]
+    ).reset_index(drop=True)
+    return eligible, areas
+
+
+def population_evasao(df, modalidades, suffixes=()):
+    """Offers in the chosen modalities, with QT_MAT_2023 and QT_EVAS for that population.
+
+    suffixes empty uses the overall counts. Otherwise those demographic columns are summed.
+    """
+    id_cols = [
+        column
+        for column in ("NO_CURSO", "NO_CINE_AREA_GERAL", "SG_UF", "NO_UF", "CO_UF")
+        if column in df.columns
+    ]
+    chosen = {int(value) for value in modalidades}
+    if not chosen:
+        empty = df.iloc[0:0].loc[:, id_cols].copy()
+        empty["QT_MAT_2023"] = pd.Series(dtype="float64")
+        empty["QT_EVAS"] = pd.Series(dtype="float64")
+        return empty.reset_index(drop=True)
+
+    modalidade = pd.to_numeric(df["TP_MODALIDADE_ENSINO"], errors="coerce")
+    mask = modalidade.isin(chosen)
+    out = df.loc[mask, id_cols].copy()
+    if suffixes:
+        mat_cols = [f"QT_MAT_{suffix}_2023" for suffix in suffixes]
+        evas_cols = [f"QT_EVAS_{suffix}" for suffix in suffixes]
+        out["QT_MAT_2023"] = df.loc[mask, mat_cols].sum(axis=1).to_numpy()
+        out["QT_EVAS"] = df.loc[mask, evas_cols].sum(axis=1).to_numpy()
+    else:
+        out["QT_MAT_2023"] = df.loc[mask, "QT_MAT_2023"].to_numpy()
+        out["QT_EVAS"] = df.loc[mask, "QT_EVAS"].to_numpy()
+    return out.reset_index(drop=True)
 
 
 def evasao_ufrgs(df):

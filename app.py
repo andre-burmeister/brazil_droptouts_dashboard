@@ -1,18 +1,21 @@
 import streamlit as st
 
+from dashboard import render as render_dashboard
 from tab1_dataframes import render as render_dataframes
-from tab2_map import render as render_map
 from tab3_evasao_dataframes import render as render_evasao
 
+st.set_page_config(layout="wide")
 st.title("Censo da Educação Superior — Cursos e evasão")
 
-tab_dados, tab_evasao, tab_mapa = st.tabs(["Dados", "Evasão", "Mapa"])
+tab_dashboard, tab_evasao, tab_brutos = st.tabs(
+    ["Dashboards", "Dados de Evasão", "Dados Inalterados"]
+)
 
-with tab_dados:
-    render_dataframes()
+with tab_dashboard:
+    render_dashboard()
 
 with tab_evasao:
     render_evasao()
 
-with tab_mapa:
-    render_map()
+with tab_brutos:
+    render_dataframes()
