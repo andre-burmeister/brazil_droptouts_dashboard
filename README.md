@@ -1,8 +1,10 @@
-# Censo da Educação Superior 2024 — Cursos
+# Censo da Educação Superior — Cursos e evasão
 
-Dashboard em [Streamlit](https://streamlit.io/) para explorar os microdados de cursos do [Censo da Educação Superior 2024](https://www.gov.br/inep/pt-br/acesso-a-informacao/dados-abertos/microdados/censo-da-educacao-superior), publicados pelo INEP.
+Dashboard em [Streamlit](https://streamlit.io/) para explorar os microdados de cursos do [Censo da Educação Superior](https://www.gov.br/inep/pt-br/acesso-a-informacao/dados-abertos/microdados/censo-da-educacao-superior), publicados pelo INEP.
 
-O aplicativo lê o cadastro de cursos (`MICRODADOS_CADASTRO_CURSOS_2024.CSV`) e usa o dicionário oficial de variáveis para mostrar a descrição de cada coluna ao passar o mouse.
+As tabelas da aba Dados usam o cadastro de cursos de **2023**. A evasão 2023→2024 é calculada em memória (cache Streamlit) a partir dos dois anos, sem alterar os CSVs originais:
+
+`evadidos = matriculados_2023 − concluintes_2023 − matriculados_2024 + ingressantes_2024`
 
 Os microdados não entram no repositório. É preciso baixá-los no site do INEP e colocá-los na pasta `dados/`, como descrito abaixo.
 
@@ -21,13 +23,17 @@ cd brazil_droptouts_dashboard
 
 1. Abra a página de microdados do Censo da Educação Superior:  
    [https://www.gov.br/inep/pt-br/acesso-a-informacao/dados-abertos/microdados/censo-da-educacao-superior](https://www.gov.br/inep/pt-br/acesso-a-informacao/dados-abertos/microdados/censo-da-educacao-superior)
-2. Na seção **2024**, baixe **Microdados do Censo da Educação Superior 2024**. O arquivo é um `.zip` grande.
-3. Extraia o zip de forma que a pasta `microdados_censo_da_educacao_superior_2024` fique dentro de `dados/`, na raiz deste projeto.
-
-O aplicativo usa dois arquivos dessa pasta. O restante do pacote (questionários, leia-me e demais CSVs) pode permanecer no lugar; não é necessário reorganizar arquivo por arquivo.
+2. Baixe os microdados de **2023** e de **2024** (cada um é um `.zip` grande).
+3. Extraia os zips de forma que as pastas fiquem dentro de `dados/`, na raiz deste projeto.
 
 ```text
 dados/
+├── microdados_censo_da_educacao_superior_2023/
+│   ├── dados/
+│   │   └── MICRODADOS_CADASTRO_CURSOS_2023.CSV
+│   └── Anexos/
+│       └── ANEXO I - Dicionário de Dados/
+│           └── dicionário_dados_educação_superior.xlsx
 └── microdados_censo_da_educacao_superior_2024/
     ├── dados/
     │   └── MICRODADOS_CADASTRO_CURSOS_2024.CSV
@@ -36,7 +42,7 @@ dados/
             └── dicionário_dados_educação_superior.xlsx
 ```
 
-O CSV usa separador `;` e codificação Latin-1. O dicionário é a planilha `cadastro_cursos` do anexo em Excel.
+Os CSVs usam separador `;` e codificação Latin-1. O dicionário é a planilha `cadastro_cursos` do anexo em Excel.
 
 ## Executar localmente
 
@@ -49,6 +55,8 @@ pip install -r requirements.txt
 streamlit run app.py
 ```
 
-O Streamlit abre o dashboard em [http://localhost:8501](http://localhost:8501). A primeira carga lê o CSV inteiro e pode levar alguns segundos; as leituras seguintes ficam em cache enquanto o processo estiver no ar.
+O Streamlit abre o dashboard em [http://localhost:8501](http://localhost:8501). A primeira carga lê os CSVs e pode levar alguns segundos; as leituras e o cálculo de evasão ficam em cache enquanto o processo estiver no ar.
+
+A aba **Evasão** repete os recortes da aba Dados com as colunas `QT_EVAS_*` (e taxas após agregação). A aba **Mapa** mostra a taxa média de evasão por UF (média ponderada pelas matrículas de 2023), em um mapa Folium.
 
 Para encerrar, use `Ctrl+C` no terminal.
