@@ -6,16 +6,9 @@ import pandas as pd
 import streamlit as st
 from streamlit_folium import st_folium
 
-from data_helpers import EVASAO_FROM_YEAR, EVASAO_TO_YEAR, evasao_by_state, load_evasao
+from data_helpers import EVASAO_FROM_YEAR, EVASAO_TO_YEAR
 
 GEOJSON_PATH = Path(__file__).parent / "geo" / "brazil_states.geojson"
-
-
-@st.cache_data
-def state_dropout_rates():
-    """Student-weighted mean dropout rate per state: Σ QT_EVAS / Σ QT_MAT_2023."""
-    by_state = evasao_by_state(load_evasao())
-    return by_state.loc[:, ["SG_UF", "QT_MAT_2023", "QT_EVAS", "TX_EVAS"]].copy()
 
 
 def brazil_choropleth(rates: pd.DataFrame) -> folium.Map:
@@ -80,16 +73,25 @@ def brazil_choropleth(rates: pd.DataFrame) -> folium.Map:
     return mapa
 
 
-def render():
+def render(rates: pd.DataFrame, *, map_key: str):
     st.header("Taxa média de evasão por estado")
     st.caption(
-        f"Média ponderada pelo número de matrículas de {EVASAO_FROM_YEAR} em cada "
-        f"oferta de curso: Σ evadidos / Σ matriculados_{EVASAO_FROM_YEAR} "
-        f"({EVASAO_FROM_YEAR}→{EVASAO_TO_YEAR})."
+        f"Média ponderada pelas matrículas de {EVASAO_FROM_YEAR} em cada oferta do recorte: "
+        f"Σ evadidos / Σ matriculados_{EVASAO_FROM_YEAR} "
+        f"({EVASAO_FROM_YEAR}→{EVASAO_TO_YEAR}). "
+        "Entram todas as ofertas do filtro, sem o corte de 100 matrículas dos gráficos."
     )
+    if rates.empty or rates["QT_MAT_2023"].fillna(0).sum() == 0:
+        st.info("Nenhuma oferta de curso nesse recorte.")
+        return
 
-    rates = state_dropout_rates()
-    st_folium(brazil_choropleth(rates), width="stretch", height=560, returned_objects=[])
+    st_folium(
+        brazil_choropleth(rates),
+        height=560,
+        use_container_width=True,
+        returned_objects=[],
+        key=map_key,
+    )
 
     table = rates.copy()
     table["Taxa (%)"] = (table["TX_EVAS"] * 100).round(2)
