@@ -1,6 +1,8 @@
+import pandas as pd
 import streamlit as st
 
 from data_helpers import (
+    DEFAULT_YEAR,
     courses_by_state,
     courses_total,
     load_column_descriptions,
@@ -19,9 +21,26 @@ def column_config_for(df, descriptions):
     }
 
 
+def descriptions_table(descriptions):
+    return pd.DataFrame(
+        {
+            "Nome da Variável": list(descriptions.keys()),
+            "Descrição da Variável": list(descriptions.values()),
+        }
+    )
+
+
 def render():
-    df = load_cursos()
-    descriptions = load_column_descriptions()
+    df = load_cursos(DEFAULT_YEAR)
+    descriptions = load_column_descriptions(DEFAULT_YEAR)
+
+    st.header("Dicionário de variáveis")
+    dicionario = descriptions_table(descriptions)
+    st.caption(
+        f"{len(dicionario)} variáveis · Censo {DEFAULT_YEAR} · "
+        "nomes e definições do dicionário oficial do INEP"
+    )
+    st.dataframe(dicionario, width="stretch", hide_index=True)
 
     st.header("1. Universidade Federal do Rio Grande do Sul")
     ufrgs = ufrgs_courses(df)
