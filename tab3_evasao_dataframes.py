@@ -7,16 +7,24 @@ from data_helpers import (
     evasao_by_course,
     evasao_by_course_state,
     evasao_by_state,
-    evasao_suffixes,
     evasao_ufrgs,
     load_column_descriptions,
     load_evasao,
+    slice_evasao,
 )
 from tab1_dataframes import column_config_for, descriptions_table
 
+EVASAO_COUNT_COLS = (
+    "QT_EVAS",
+    "QT_MAT_2023",
+    "QT_MAT_2024",
+    "QT_CONC_2023",
+    "QT_ING_2024",
+)
+
 
 def evasao_column_descriptions(base_descriptions):
-    """Describe QT_EVAS_* / TX_EVAS_* using the official MAT_* labels when available."""
+    """Describe the total evasion counts and the rate after aggregation."""
     descriptions = {}
     formula = (
         f"matriculados_{EVASAO_FROM_YEAR} − concluintes_{EVASAO_FROM_YEAR} "
@@ -42,52 +50,16 @@ def evasao_column_descriptions(base_descriptions):
         base_descriptions.get("QT_ING", "Quantidade de ingressantes")
         + f" ({EVASAO_TO_YEAR})"
     )
-
-    for name, text in base_descriptions.items():
-        if not name.startswith("QT_MAT_"):
-            continue
-        suffix = name[len("QT_MAT_") :]
-        mat_label = text
-        descriptions[f"QT_MAT_{suffix}_2023"] = f"{mat_label} ({EVASAO_FROM_YEAR})"
-        descriptions[f"QT_MAT_{suffix}_2024"] = f"{mat_label} ({EVASAO_TO_YEAR})"
-        conc_name = f"QT_CONC_{suffix}"
-        conc_label = base_descriptions.get(
-            conc_name, f"Quantidade de concluintes — {suffix}"
-        )
-        descriptions[f"QT_CONC_{suffix}_2023"] = f"{conc_label} ({EVASAO_FROM_YEAR})"
-        ing_name = f"QT_ING_{suffix}"
-        ing_label = base_descriptions.get(
-            ing_name, f"Quantidade de ingressantes — {suffix}"
-        )
-        descriptions[f"QT_ING_{suffix}_2024"] = f"{ing_label} ({EVASAO_TO_YEAR})"
-        descriptions[f"QT_EVAS_{suffix}"] = (
-            f"Quantidade de alunos evadidos — {suffix} ({formula})"
-        )
-        descriptions[f"TX_EVAS_{suffix}"] = (
-            f"Taxa de evasão — {suffix}: QT_EVAS_{suffix} / QT_MAT_{suffix}_2023"
-        )
     return descriptions
 
 
 def render():
-    df = load_evasao()
+    df = slice_evasao(load_evasao(), None, with_rate=False)
     base_descriptions = load_column_descriptions(EVASAO_FROM_YEAR)
     descriptions = {**base_descriptions, **evasao_column_descriptions(base_descriptions)}
 
     st.header("Dicionário de variáveis (evasão)")
-    suffixes = evasao_suffixes(df)
-    evasao_names = (
-        [
-            "QT_EVAS",
-            "TX_EVAS",
-            "QT_MAT_2023",
-            "QT_MAT_2024",
-            "QT_CONC_2023",
-            "QT_ING_2024",
-        ]
-        + [f"QT_EVAS_{suffix}" for suffix in suffixes]
-        + [f"TX_EVAS_{suffix}" for suffix in suffixes]
-    )
+    evasao_names = list(EVASAO_COUNT_COLS) + ["TX_EVAS"]
     dicionario = descriptions_table(
         {name: descriptions[name] for name in evasao_names if name in descriptions}
     )

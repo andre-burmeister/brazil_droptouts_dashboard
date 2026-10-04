@@ -60,3 +60,24 @@ O Streamlit abre o dashboard em [http://localhost:8501](http://localhost:8501). 
 A aba **Evasão** repete os recortes da aba Dados com as colunas `QT_EVAS_*` (e taxas após agregação). A aba **Mapa** mostra a taxa média de evasão por UF (média ponderada pelas matrículas de 2023), em um mapa Folium.
 
 Para encerrar, use `Ctrl+C` no terminal.
+
+
+
+
+
+## TODO:
+
+- Verificar os dados (dados negativos, dados acima de 100%)
+- Criar um dashboard completo: 
+	- barra leteral para os filtros
+
+- Uma aba para cada tipo de filtro (sexo, idade, ...)
+- Uma aba para comparação entre cursos
+- Gráficos focando na UFRGS (podendo escolher quem 
+
+- Reformular as perguntas do trabalho 1 
+- Focar o dashboard para responder as perguntas
+- Colocar uma explicação
+
+- Lado esquerdo:
+	- Filtro por região do Brasil
