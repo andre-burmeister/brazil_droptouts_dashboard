@@ -67,13 +67,20 @@ Para encerrar, use `Ctrl+C` no terminal.
 
 ## TODO:
 
-- Verificar os dados (dados negativos, dados acima de 100%)
-- Criar um dashboard completo: 
-	- barra leteral para os filtros
+1. Verificar os dados (dados negativos, dados acima de 100%):
+Provavelmente é por causa de cursos que recém começaram, ou que tem poucos alunos.
+Filtros:
+- Número mínimo de estudantes no curos. acima de 1000 estudantes em todo o Brasil
+- C
 
+2. Criar um dashboard completo: 
+
+- Barra leteral para os filtros
 - Uma aba para cada tipo de filtro (sexo, idade, ...)
 - Uma aba para comparação entre cursos
-- Gráficos focando na UFRGS (podendo escolher quem 
+
+
+- Gráficos focando na UFRGS (podendo escolher a faculdade, mas a UFRGS é o default)
 
 - Reformular as perguntas do trabalho 1 
 - Focar o dashboard para responder as perguntas
